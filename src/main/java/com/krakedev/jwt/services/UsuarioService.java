@@ -1,7 +1,9 @@
 package com.krakedev.jwt.services;
 
+import java.util.List;
 import java.util.Optional;
 
+import org.mindrot.jbcrypt.BCrypt;
 import org.springframework.stereotype.Service;
 
 import com.krakedev.jwt.entidades.Usuario;
@@ -16,9 +18,27 @@ public class UsuarioService {
         this.repository = repository;
     }
 
-    // Guardar usuario en texto plano
+    // Guardar usuario con contraseña encriptada
     public Usuario guardar(Usuario usuario) {
+
+        String passwordEncriptado = BCrypt.hashpw(usuario.getPassword(), BCrypt.gensalt());
+
+        usuario.setPassword(passwordEncriptado);
+
         return repository.save(usuario);
+    }
+
+    // Listar usuarios
+    public List<Usuario> listar() {
+        return repository.findAll();
+    }
+
+    // Buscar por id
+    public Usuario buscar(Long id) {
+
+        Optional<Usuario> resultado = repository.findById(id);
+
+        return resultado.orElse(null);
     }
 
     // Buscar por username
@@ -29,7 +49,7 @@ public class UsuarioService {
         return resultado.orElse(null);
     }
 
-    // Autenticar usuario vulnerable con equals
+    // Autenticar usuario con BCrypt
     public boolean autenticar(String username, String password) {
 
         Optional<Usuario> usuarioOpt = repository.findByUsername(username);
@@ -38,11 +58,24 @@ public class UsuarioService {
 
             Usuario usuario = usuarioOpt.get();
 
-            if (usuario.getPassword().equals(password)) {
+            if (BCrypt.checkpw(password, usuario.getPassword())) {
                 return true;
             }
         }
 
         return false;
+    }
+
+    // Eliminar usuario
+    public boolean eliminar(Long id) {
+
+        Usuario usuario = buscar(id);
+
+        if (usuario == null) {
+            return false;
+        }
+
+        repository.deleteById(id);
+        return true;
     }
 }

@@ -18,6 +18,7 @@ public class JwtUtil {
 
     private static final String EMISOR = "PatitasAlRescateBackend";
 
+    // 30 minutos
     private static final long TIEMPO_EXPIRACION = 1800000;
 
     public static String generarToken(String username, String rol) {
